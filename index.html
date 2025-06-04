@@ -1,81 +1,137 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💸 Meu Controle Financeiro</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Controle Financeiro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .container {
+            max-width: 900px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .grafico-container {
+            height: 300px;
+            position: relative;
+        }
+        li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .excluir-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>💸 Controle Financeiro Pessoal</h1>
-    </header>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Controle Financeiro Pessoal</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Novo Lançamento
+                    </div>
+                    <div class="card-body">
+                        <form id="form-lancamento">
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição</label>
+                                <input type="text" class="form-control" id="descricao" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="valor" class="form-label">Valor (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="valor" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo" class="form-label">Tipo</label>
+                                <select class="form-select" id="tipo" required>
+                                    <option value="entrada">Entrada</option>
+                                    <option value="saida">Saída</option>
+                                    <option value="pagamento_fatura">Pagamento de Fatura</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Adicionar</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <span>Cartão de Crédito</span>
+                        <button id="botao-limite-cartao" class="btn btn-sm btn-light">Definir Limite</button>
+                    </div>
+                    <div class="card-body" id="cartao-credito">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p>Limite Total: <span id="limite-total">R$ 0.00</span></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Gasto Atual: <span id="gasto-atual-cartao">R$ 0.00</span></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Disponível: <span id="disponivel-cartao">R$ 0.00</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        Dashboard
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p>Saldo Geral: <span id="saldo-geral">R$ 0.00</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>Disponível Cartão: <span id="saldo-disponivel-cartao">R$ 0.00</span></p>
+                            </div>
+                        </div>
+                        <div class="grafico-container">
+                            <canvas id="grafico-pizza"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        Entradas
+                    </div>
+                    <div class="card-body">
+                        <ul id="lista-entradas" class="list-unstyled"></ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        Saídas
+                    </div>
+                    <div class="card-body">
+                        <ul id="lista-saidas" class="list-unstyled"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <main class="container">
-        <section id="lancamentos">
-            <h2>➕ Novo Lançamento</h2>
-            <form id="form-lancamento">
-                <div class="form-group">
-                    <label for="descricao">Descrição:</label>
-                    <input type="text" id="descricao" required>
-                </div>
-                <div class="form-group">
-                    <label for="valor">Valor:</label>
-                    <input type="number" id="valor" required>
-                </div>
-                <div class="form-group">
-                    <label for="tipo">Tipo:</label>
-                    <select id="tipo">
-                        <option value="entrada">Entrada</option>
-                        <option value="saida">Saída</option>
-                        <option value="pagamento_fatura">Pagamento de Fatura</option>
-                    </select>
-                </div>
-                <button type="submit">Lançar</button>
-            </form>
-        </section>
-
-        <section id="categorias">
-            <h2>📊 Categorias</h2>
-            <div class="categoria">
-                <h3>📥 Entradas</h3>
-                <ul id="lista-entradas"></ul>
-            </div>
-            <div class="categoria">
-                <h3>📤 Saídas</h3>
-                <ul id="lista-saidas"></ul>
-            </div>
-            <div class="categoria">
-                <h3>💳 Cartão de Crédito</h3>
-                <div id="cartao-credito">
-                    <p><strong>Nome:</strong> Meu Cartão</p>
-                    <p><strong>Limite Total:</strong> <span id="limite-total">R$ 0,00</span></p>
-                    <p><strong>Gasto Atual:</strong> <span id="gasto-atual-cartao">R$ 0,00</span></p>
-                    <p><strong>Disponível:</strong> <span id="disponivel-cartao">R$ 0,00</span></p>
-                    <button id="botao-limite-cartao">Definir Limite</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="dashboard">
-            <h2>📈 Resumo</h2>
-            <div class="resumo-item">
-                <h3>💰 Saldo Geral</h3>
-                <p><span id="saldo-geral">R$ 0,00</span></p>
-            </div>
-            <div class="resumo-item">
-                <h3>💳 Saldo Disponível no Cartão</h3>
-                <p><span id="saldo-disponivel-cartao">R$ 0,00</span></p>
-            </div>
-            <div class="resumo-item grafico">
-                <h3>📊 Distribuição Financeira</h3>
-                <canvas id="grafico-pizza"></canvas>
-            </div>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 Meu Controle Financeiro</p>
-    </footer>
     <script src="script.js"></script>
 </body>
 </html>
