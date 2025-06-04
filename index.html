@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💸 Meu Controle Financeiro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>💸 Controle Financeiro Pessoal</h1>
+    </header>
+
+    <main class="container">
+        <section id="lancamentos">
+            <h2>➕ Novo Lançamento</h2>
+            <form id="form-lancamento">
+                <div class="form-group">
+                    <label for="descricao">Descrição:</label>
+                    <input type="text" id="descricao" required>
+                </div>
+                <div class="form-group">
+                    <label for="valor">Valor:</label>
+                    <input type="number" id="valor" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipo">Tipo:</label>
+                    <select id="tipo">
+                        <option value="entrada">Entrada</option>
+                        <option value="saida">Saída</option>
+                        <option value="pagamento_fatura">Pagamento de Fatura</option>
+                    </select>
+                </div>
+                <button type="submit">Lançar</button>
+            </form>
+        </section>
+
+        <section id="categorias">
+            <h2>📊 Categorias</h2>
+            <div class="categoria">
+                <h3>📥 Entradas</h3>
+                <ul id="lista-entradas"></ul>
+            </div>
+            <div class="categoria">
+                <h3>📤 Saídas</h3>
+                <ul id="lista-saidas"></ul>
+            </div>
+            <div class="categoria">
+                <h3>💳 Cartão de Crédito</h3>
+                <div id="cartao-credito">
+                    <p><strong>Nome:</strong> Meu Cartão</p>
+                    <p><strong>Limite Total:</strong> <span id="limite-total">R$ 0,00</span></p>
+                    <p><strong>Gasto Atual:</strong> <span id="gasto-atual-cartao">R$ 0,00</span></p>
+                    <p><strong>Disponível:</strong> <span id="disponivel-cartao">R$ 0,00</span></p>
+                    <button id="botao-limite-cartao">Definir Limite</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard">
+            <h2>📈 Resumo</h2>
+            <div class="resumo-item">
+                <h3>💰 Saldo Geral</h3>
+                <p><span id="saldo-geral">R$ 0,00</span></p>
+            </div>
+            <div class="resumo-item">
+                <h3>💳 Saldo Disponível no Cartão</h3>
+                <p><span id="saldo-disponivel-cartao">R$ 0,00</span></p>
+            </div>
+            <div class="resumo-item grafico">
+                <h3>📊 Distribuição Financeira</h3>
+                <canvas id="grafico-pizza"></canvas>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Meu Controle Financeiro</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
