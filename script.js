@@ -14,12 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lancamentos = JSON.parse(localStorage.getItem('lancamentos')) || [];
     let limiteCartao = parseFloat(localStorage.getItem('limiteCartao')) || 0;
-
-    // Adiciona a nova opção ao select de tipo
-    const optionCartao = document.createElement('option');
-    optionCartao.value = 'pago_cartao';
-    optionCartao.textContent = 'Pago com Cartão de Crédito';
-    tipoSelect.appendChild(optionCartao);
+    
+    // Variável para armazenar a instância do gráfico
+    let graficoPizza = null;
 
     function atualizarCartao() {
         let pagamentosFatura = lancamentos
@@ -55,18 +52,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>${lancamento.descricao}: R$ ${parseFloat(lancamento.valor).toFixed(2)}</span>
                 <button class="excluir-btn" data-index="${index}">🗑️</button>
             `;
+            
             if (lancamento.tipo === 'entrada') {
                 listaEntradas.appendChild(li);
             } else if (lancamento.tipo === 'saida' || lancamento.tipo === 'pago_cartao' || lancamento.tipo === 'pagamento_fatura') {
-                const liSaida = document.createElement('li');
-                liSaida.innerHTML = `
-                    <span>${lancamento.descricao}: R$ ${parseFloat(lancamento.valor).toFixed(2)} (${lancamento.tipo === 'pago_cartao' ? 'Cartão' : lancamento.tipo === 'pagamento_fatura' ? 'Pg. Fatura' : 'Conta'})</span>
+                const tipoExibicao = lancamento.tipo === 'pago_cartao' ? 'Cartão' : 
+                                    lancamento.tipo === 'pagamento_fatura' ? 'Pg. Fatura' : 'Conta';
+                
+                li.innerHTML = `
+                    <span>${lancamento.descricao}: R$ ${parseFloat(lancamento.valor).toFixed(2)} (${tipoExibicao})</span>
                     <button class="excluir-btn" data-index="${index}">🗑️</button>
                 `;
-                listaSaidas.appendChild(liSaida);
+                listaSaidas.appendChild(li);
             }
         });
 
+        // Adiciona eventos de clique aos botões de exclusão
+        adicionarEventosExclusao();
+    }
+    
+    function adicionarEventosExclusao() {
         document.querySelectorAll('.excluir-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const index = parseInt(this.dataset.index);
@@ -74,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 salvarLancamentos();
                 exibirLancamentos();
                 atualizarDashboard();
+                atualizarCartao();
             });
         });
     }
@@ -98,16 +104,21 @@ document.addEventListener('DOMContentLoaded', () => {
         saldoGeralSpan.textContent = `R$ ${(totalEntradas - totalSaidasConta - totalPagamentosFatura).toFixed(2)}`;
         saldoDisponivelCartaoSpan.textContent = `R$ ${(limiteCartao + totalPagamentosFatura - totalGastosCartao).toFixed(2)}`;
 
-        atualizarGraficoPizza(totalEntradas, totalSaidasConta + totalGastosCartao + totalPagamentosFatura, limiteCartao + totalPagamentosFatura - totalGastosCartao);
+        atualizarGraficoPizza(totalEntradas, totalSaidasConta + totalPagamentosFatura, limiteCartao + totalPagamentosFatura - totalGastosCartao);
     }
 
     function atualizarGraficoPizza(entradas, saidas, cartao) {
         const ctx = graficoPizzaCanvas.getContext('2d');
-        const data = [entradas, saidas, Math.abs(cartao)];
+        const data = [entradas, saidas, Math.max(0, cartao)]; // Garantir que o valor do cartão não seja negativo no gráfico
         const labels = ['Entradas', 'Saídas', 'Cartão (Disponível)'];
         const colors = ['#28a745', '#dc3545', '#007bff'];
 
-        new Chart(ctx, {
+        // Destruir o gráfico anterior se existir
+        if (graficoPizza) {
+            graficoPizza.destroy();
+        }
+
+        graficoPizza = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: labels,
@@ -131,16 +142,22 @@ document.addEventListener('DOMContentLoaded', () => {
     formLancamento.addEventListener('submit', function(e) {
         e.preventDefault();
         const descricao = document.getElementById('descricao').value;
-        const valor = document.getElementById('valor').value;
+        const valor = parseFloat(document.getElementById('valor').value);
         const tipo = document.getElementById('tipo').value;
 
         if (tipo === 'pagamento_fatura') {
             // Registrar como saída do saldo geral
-            lancamentos.push({ descricao: `Pg. Fatura: ${descricao}`, valor, tipo: 'saida' });
-            // Atualizar o saldo disponível do cartão
-            lancamentos.push({ descricao: `Crédito da Fatura: ${descricao}`, valor, tipo: 'pagamento_fatura', isCredit: true });
+            lancamentos.push({ 
+                descricao: `Pg. Fatura: ${descricao}`, 
+                valor: valor, 
+                tipo: 'pagamento_fatura'
+            });
         } else {
-            lancamentos.push({ descricao, valor, tipo });
+            lancamentos.push({ 
+                descricao, 
+                valor: valor, 
+                tipo 
+            });
         }
 
         salvarLancamentos();
@@ -152,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     botaoLimiteCartao.addEventListener('click', () => {
         const novoLimite = parseFloat(prompt('Digite o limite total do cartão:'));
-        if (!isNaN(novoLimite)) {
+        if (!isNaN(novoLimite) && novoLimite >= 0) {
             limiteCartao = novoLimite;
             salvarLimiteCartao();
         } else {
@@ -162,17 +179,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicialização
     if (!localStorage.getItem('limiteCartao')) {
-        const limiteInicial = parseFloat(prompt('Bem-vindo! Digite o limite total do seu cartão de crédito:'));
-        if (!isNaN(limiteInicial)) {
-            limiteCartao = limiteInicial;
-            salvarLimiteCartao();
-        } else {
-            alert('Você não definiu um limite para o cartão.');
-        }
-    } else {
-        atualizarCartao();
+        setTimeout(() => {
+            const limiteInicial = parseFloat(prompt('Bem-vindo! Digite o limite total do seu cartão de crédito:'));
+            if (!isNaN(limiteInicial) && limiteInicial >= 0) {
+                limiteCartao = limiteInicial;
+                salvarLimiteCartao();
+            } else {
+                alert('Você não definiu um limite válido para o cartão. Usando valor padrão de 0.');
+                limiteCartao = 0;
+                salvarLimiteCartao();
+            }
+        }, 500); // Pequeno atraso para garantir que a página esteja completamente carregada
     }
+
+    // Adicionar opção de pagamento com cartão ao select
+    const optionCartao = document.createElement('option');
+    optionCartao.value = 'pago_cartao';
+    optionCartao.textContent = 'Pago com Cartão de Crédito';
+    tipoSelect.appendChild(optionCartao);
 
     exibirLancamentos();
     atualizarDashboard();
+    atualizarCartao();
 });
