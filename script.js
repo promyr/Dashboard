@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(lancamento => lancamento.tipo === 'pago_cartao')
             .reduce((total, lancamento) => total + parseFloat(lancamento.valor), 0);
 
-        saldoGeralSpan.textContent = `R$ ${(totalEntradas - totalSaidasConta - totalPagamentosFatura - totalGastosCartao).toFixed(2)}`;
+        saldoGeralSpan.textContent = `R$ ${(totalEntradas - totalSaidasConta - totalPagamentosFatura).toFixed(2)}`;
         saldoDisponivelCartaoSpan.textContent = `R$ ${(limiteCartao + totalPagamentosFatura - totalGastosCartao).toFixed(2)}`;
 
         atualizarGraficoPizza(totalEntradas, totalSaidasConta + totalGastosCartao + totalPagamentosFatura, limiteCartao + totalPagamentosFatura - totalGastosCartao);
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Registrar como saída do saldo geral
             lancamentos.push({ descricao: `Pg. Fatura: ${descricao}`, valor, tipo: 'saida' });
             // Atualizar o saldo disponível do cartão
-            lancamentos.push({ descricao: `Crédito da Fatura: ${descricao}`, valor, tipo: 'credito_cartao_temp', isCredit: true }); // Usar um tipo temporário para não influenciar outras categorias diretamente
+            lancamentos.push({ descricao: `Crédito da Fatura: ${descricao}`, valor, tipo: 'pagamento_fatura', isCredit: true });
         } else {
             lancamentos.push({ descricao, valor, tipo });
         }
